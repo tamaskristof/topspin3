@@ -439,6 +439,47 @@
             updateMatchData();
             lucide.createIcons();
         });
+
+        // Add keyboard controls for navigation
+        document.addEventListener('keydown', function(event) {
+            // Left arrow key - go to previous match
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault(); // Prevent default browser behavior
+                goToPreviousMatch();
+            }
+            // Right arrow key - go to next match
+            else if (event.key === 'ArrowRight') {
+                event.preventDefault(); // Prevent default browser behavior
+                goToNextMatch();
+            }
+        });
+
+        // Add swipe controls for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const minSwipeDistance = 50; // Minimum distance for a swipe to register
+
+        document.addEventListener('touchstart', function(event) {
+            touchStartX = event.changedTouches[0].screenX;
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(event) {
+            touchEndX = event.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            const swipeDistance = touchEndX - touchStartX;
+            
+            // Swipe right (next match)
+            if (swipeDistance < -minSwipeDistance) {
+                goToNextMatch();
+            }
+            // Swipe left (previous match)
+            else if (swipeDistance > minSwipeDistance) {
+                goToPreviousMatch();
+            }
+        }
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
