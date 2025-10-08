@@ -92,7 +92,7 @@
                 startTime: '18:00',
                 warmupTime: '17:30',
                 opponentRanking: 14,
-                players: ['Viktor', 'Jani', 'Balázs', 'Tamás'],
+                players: ['Viktor', 'Jani', 'Bazsi', 'Tamás'],
                 substitute: ''
             },
             {
@@ -274,6 +274,30 @@
             return null;
         }
 
+        // Function to count matches played by each player up to the current round
+        function getPlayerMatchCounts(upToRound) {
+            const playerCounts = {};
+            
+            // Count matches for each player up to (but not including) the current round
+            for (let i = 0; i < upToRound && i < matchData.length; i++) {
+                const match = matchData[i];
+                
+                // Skip no-match weeks
+                if (match.noMatch) continue;
+                
+                // Count each player in this match
+                if (match.players && match.players.length > 0) {
+                    match.players.forEach(player => {
+                        if (player) {
+                            playerCounts[player] = (playerCounts[player] || 0) + 1;
+                        }
+                    });
+                }
+            }
+            
+            return playerCounts;
+        }
+
         // Navigation functions
         function goToPreviousMatch() {
             const newIndex = currentMatchIndex - 1;
@@ -405,6 +429,9 @@
             // Update players
             const playerElements = document.querySelectorAll('.player-name');
             
+            // Get player match counts up to the current round
+            const playerCounts = getPlayerMatchCounts(match.round);
+            
             // Check if players list is empty or undefined
             if (!match.players || match.players.length === 0) {
                 // Show "Folyamatban" for all player slots
@@ -412,10 +439,11 @@
                     playerElement.textContent = 'FOLYAMATBAN';
                 });
             } else {
-                // Update with actual player names
+                // Update with actual player names and match counts
                 match.players.forEach((player, index) => {
                     if (playerElements[index]) {
-                        playerElements[index].textContent = player.toUpperCase();
+                        const matchCount = playerCounts[player] || 0;
+                        playerElements[index].textContent = `${player.toUpperCase()} (${matchCount})`;
                     }
                 });
                 
@@ -429,8 +457,14 @@
             
             // Update substitute
             const substituteElement = document.getElementById('substitute-name');
-            if (substituteElement && match.substitute) {
-                substituteElement.textContent = match.substitute.toUpperCase();
+            const substituteSection = document.getElementById('substitute-section');
+            
+            if (substituteElement && substituteSection && match.substitute) {
+                const matchCount = playerCounts[match.substitute] || 0;
+                substituteElement.textContent = `${match.substitute.toUpperCase()} (${matchCount})`;
+                substituteSection.style.display = 'block';
+            } else if (substituteSection) {
+                substituteSection.style.display = 'none';
             }
         }
 
@@ -568,7 +602,7 @@
                 <!-- Players List -->
                 <div id="players-section" class="border border-gray-300 p-2 sm:p-3 lg:p-4 mb-3 sm:mb-4">
                     <!-- All players including substitute -->
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-3 lg:gap-4">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-3 lg:gap-4 mb-3">
                         <div class="bg-black text-white p-2 sm:p-2 lg:p-3 text-center flex flex-col items-center justify-center">
                             <div class="text-xs sm:text-sm lg:text-base font-bold mb-1">#1</div>
                             <div class="player-name text-xs sm:text-base lg:text-lg xl:text-xl font-black">VIKTOR</div>
@@ -584,6 +618,16 @@
                         <div class="bg-gray-400 text-black p-2 sm:p-2 lg:p-3 text-center flex flex-col items-center justify-center">
                             <div class="text-xs sm:text-sm lg:text-base font-bold mb-1">#4</div>
                             <div class="player-name text-xs sm:text-base lg:text-lg xl:text-xl font-black">BAZSI</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Substitute player -->
+                    <div id="substitute-section" class="border-t border-gray-400 pt-2 sm:pt-3" style="display: none;">
+                        <div class="text-center">
+                            <div class="inline-block bg-blue-500 text-white p-2 sm:p-2 lg:p-3 text-center">
+                                <div class="text-xs sm:text-sm lg:text-base font-bold mb-1">CSERE</div>
+                                <div id="substitute-name" class="text-xs sm:text-base lg:text-lg xl:text-xl font-black"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
