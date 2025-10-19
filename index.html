@@ -112,6 +112,9 @@
             {
                 round: 7,
                 date: '2025-10-22',
+                postponed: true,
+                postponedReason: 'Ellenfél kérésére - Új időpont egyeztetés alatt',
+                // newDate: '2025-11-15', // optional - new scheduled date
                 homeTeam: 'Hercules-Topspin III',
                 awayTeam: 'P.P.S.E. VIII.',
                 location: 'Koppány utca 2-4. (Tesco, Topspin AC)',
@@ -282,8 +285,8 @@
             for (let i = 0; i < upToRound && i < matchData.length; i++) {
                 const match = matchData[i];
                 
-                // Skip no-match weeks
-                if (match.noMatch) continue;
+                // Skip no-match weeks and postponed matches
+                if (match.noMatch || match.postponed) continue;
                 
                 // Count each player in this match
                 if (match.players && match.players.length > 0) {
@@ -371,7 +374,7 @@
                 if (!pihenohetBox) {
                     pihenohetBox = document.createElement('div');
                     pihenohetBox.id = 'piheno-het-box';
-                    pihenohetBox.className = 'bg-red-500 text-white text-center py-16 sm:py-24 lg:py-32 px-8 sm:px-12 mb-3 sm:mb-4 border-2 border-red-600 min-h-[20rem] sm:min-h-[24rem] lg:min-h-[28rem] flex items-center justify-center';
+                    pihenohetBox.className = 'bg-orange-500 text-white text-center py-16 sm:py-24 lg:py-32 px-8 sm:px-12 mb-3 sm:mb-4 border-2 border-orange-600 min-h-[20rem] sm:min-h-[24rem] lg:min-h-[28rem] flex items-center justify-center';
                     pihenohetBox.innerHTML = '<h2 class="text-2xl sm:text-3xl lg:text-4xl font-black">PIHENŐHÉT</h2>';
                     // Insert after the header section
                     const headerSection = document.querySelector('.text-center.mb-3.sm\\:mb-6');
@@ -380,6 +383,50 @@
                 pihenohetBox.style.display = 'block';
                 
                 return; // Exit early for no-match weeks
+            }
+            
+            // Check if this is a postponed match
+            if (match.postponed) {
+                // Hide players section for postponed matches
+                playersSection.style.display = 'none';
+                
+                // Show teams and details but update them for postponed status
+                teamsSection.style.display = 'grid';
+                detailsSection.style.display = 'grid';
+                warmupSection.style.display = 'none';
+                
+                // Create or update the postponed message
+                let postponedBox = document.getElementById('postponed-box');
+                if (!postponedBox) {
+                    postponedBox = document.createElement('div');
+                    postponedBox.id = 'postponed-box';
+                    postponedBox.className = 'bg-orange-500 text-white text-center py-8 sm:py-12 px-6 sm:px-8 mb-3 sm:mb-4 border-2 border-orange-600';
+                    // Insert after warmup section or before players section
+                    const warmupSectionElement = document.getElementById('warmup-section');
+                    warmupSectionElement.parentNode.insertBefore(postponedBox, warmupSectionElement.nextSibling);
+                }
+                
+                let postponedContent = '<div class="space-y-2 sm:space-y-3">';
+                postponedContent += '<h2 class="text-xl sm:text-2xl lg:text-3xl font-black">ELHALASZTVA</h2>';
+                postponedContent += `<p class="text-sm sm:text-base lg:text-lg">${match.postponedReason}</p>`;
+                if (match.newDate) {
+                    const newDate = new Date(match.newDate);
+                    const formattedNewDate = newDate.toLocaleDateString('hu-HU', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    }).replace(/\//g, '. ');
+                    postponedContent += `<p class="text-sm sm:text-base lg:text-lg font-bold">Új időpont: ${formattedNewDate}</p>`;
+                }
+                postponedContent += '</div>';
+                postponedBox.innerHTML = postponedContent;
+                postponedBox.style.display = 'block';
+                
+                // Hide other special boxes
+                const pihenohetBox = document.getElementById('piheno-het-box');
+                if (pihenohetBox) {
+                    pihenohetBox.style.display = 'none';
+                }
             } else {
                 // Show normal match content for regular matches
                 teamsSection.style.display = 'grid';
@@ -387,10 +434,14 @@
                 warmupSection.style.display = 'block';
                 playersSection.style.display = 'block';
                 
-                // Hide pihenőhét box if it exists
+                // Hide special boxes if they exist
                 const pihenohetBox = document.getElementById('piheno-het-box');
                 if (pihenohetBox) {
                     pihenohetBox.style.display = 'none';
+                }
+                const postponedBox = document.getElementById('postponed-box');
+                if (postponedBox) {
+                    postponedBox.style.display = 'none';
                 }
             }
             
